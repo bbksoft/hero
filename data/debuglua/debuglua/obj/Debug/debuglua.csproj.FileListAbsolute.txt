@@ -1,0 +1,6 @@
+D:\AOW2\data\debuglua\debuglua\bin\Debug\debuglua.exe.config
+D:\AOW2\data\debuglua\debuglua\bin\Debug\debuglua.exe
+D:\AOW2\data\debuglua\debuglua\bin\Debug\debuglua.pdb
+D:\AOW2\data\debuglua\debuglua\obj\Debug\debuglua.csprojResolveAssemblyReference.cache
+D:\AOW2\data\debuglua\debuglua\obj\Debug\debuglua.exe
+D:\AOW2\data\debuglua\debuglua\obj\Debug\debuglua.pdb

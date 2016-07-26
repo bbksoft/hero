@@ -1,0 +1,688 @@
+
+ActorClient = require "game.actor_client"
+
+local Class = {}
+local msg = {}
+
+Class.msg_funs = msg
+
+
+function Class.create()
+	local obj = {}
+	Class.__index = Class
+	setmetatable(obj,Class)
+
+	return obj
+end
+
+function Class:destroy()
+	-- self.timer:Stop()
+	UpdateBeat:Remove(self.update,self)
+	gameplay = nil
+	Time.timeScale = 1.0
+end
+
+function Class:init(gamedata)
+
+	self.self_team = gamedata.self_team
+	self.actors = {}
+
+	self.my_heros = {}
+	self.other_heros = {}
+
+	self.effects = {}
+
+
+	self.temp_actors = {}
+	self.count_time = gamedata.game_time
+
+	self.game_speed = 1
+
+	self.starttime = 0 --cfg_start.time.value
+
+
+	self.play_encourage = cfg_start.encourage.value
+
+	local gp_class = require("game.gameplay")
+	gameplay = gp_class.create()
+	gameplay:init(function (msgs)
+		self:do_msg(msgs)
+	end,gamedata)
+
+	-- self.timer = Timer.New(function()
+	-- 	self:update()
+	-- end,0,-1,false)
+    -- self.timer:Start()
+	UpdateBeat:Add(self.update,self)
+
+	self.spot = load_gameobject("obj/spot")
+	self.spot:SetActive(false);
+	self.game_dt = 0
+
+	local pos_add1 = 2
+	local pos_add2 = 2
+	for _,v in pairs(self.actors) do
+		if v.team == 1 then
+			local n = (9 - v.pos_index) % 3
+			if n < pos_add1 then
+				pos_add1 = n
+			end
+		else
+			local n = (v.pos_index+2) % 3
+			if n < pos_add2 then
+				pos_add2 = n
+			end
+		end
+	end
+
+	local dis = cfg_start.add_dis.value
+	for _,v in pairs(self.actors) do
+		if v.team == 1 then
+			local n = (9 - v.pos_index) % 3
+			n = n - pos_add1
+			v.pos  = v.pos - Vector3(dis*n,0,0)
+		else
+			local n = (v.pos_index+2) % 3
+			n = n - pos_add2
+			v.pos  = v.pos + Vector3(dis*n,0,0)
+
+		end
+	end
+end
+
+function Class:set_speed(speed)
+	self.game_speed = speed
+	Time.timeScale = speed
+end
+
+
+function Class:do_msg(msgs)
+
+	for _,v in pairs(msgs) do
+--		if v.cmd == "stop_effect" then
+--			print(_s(v.params))
+--		end
+		self.msg_funs[v.cmd](self,v.params)
+	end
+
+end
+
+function Class:update()
+
+	if self.starttime then
+		self.starttime = self.starttime + Time.deltaTime
+		if self.play_encourage and self.play_encourage >= self.starttime then
+			local len  = #self.my_heros
+			local rnd = math.random(1,len)
+			--print(len,rnd,self.my_heros[rnd].type_id)
+            sound_player.play_anim_rnd(self.my_heros[rnd].type_id,{"voi_encourage1","voi_encourage2","voi_encourage3"},{30,30,30})
+
+			self.play_encourage = nil
+        end
+
+		--self.starttime = self.starttime - Time.deltaTime;
+		local need_update = false
+		local d = cfg_start.deceleration.value * Time.deltaTime
+		local min_speed = cfg_start.min_speed.value
+		for _,actor in pairs(self.actors) do
+			if actor.des_pos then
+				need_update = true
+
+				actor.speed = actor.speed - d
+				if actor.speed < min_speed then
+					actor.speed = min_speed
+				end
+			end
+			actor:update()
+		end
+		if not need_update then
+			self.starttime = nil
+		else
+			return;
+		end
+	end
+
+	if self.is_paused then
+		self.pause_dt = self.pause_dt  + Time.unscaledDeltaTime
+		if self.pause_dt >= 0.1 then
+			self.pause_dt = self.pause_dt - 0.1
+			gameplay:update(0.1)
+		end
+
+		self.pause_actor:update_move(Time.unscaledDeltaTime)
+		return
+	end
+
+	self.count_time = self.count_time - Time.deltaTime
+	if self.count_time < 0 then
+		self.count_time = 0
+	end
+
+	if (not self.last_count_time) or (math.floor(self.count_time)~=self.last_count_time) then
+		self.last_count_time = math.floor(self.count_time)
+		UITools.SetChildTimeText(UI.get("battle").node,"time/Text",self.count_time)
+
+		if (self.last_count_time < 10) then
+			sound_player.play("aow2_sfx_time")
+			UITools.EnableChildCom(UI.get("battle").node,"time/Text","SAnim",true)
+		end
+	end
+
+	self.game_dt = self.game_dt  + Time.deltaTime
+	if self.game_dt >= 0 then
+		self.game_dt = self.game_dt - 0.1
+		gameplay:update(0.1)
+	end
+
+	for _,actor in pairs(self.actors) do
+		actor:update()
+	end
+
+	for k,actor in pairs(self.temp_actors) do
+		if actor.death then
+			self.temp_actors[k] = nil
+		else
+			actor:update_temp()
+		end
+	end
+end
+
+function Class:add_temp(actor)
+	self.temp_actors[actor.id] = actor
+end
+
+function Class:pause()
+	if self.is_paused then
+		return
+	end
+
+	UI.lock(true)
+	Time.timeScale = 0;
+
+	self.is_paused = true
+	self.pause_dt = 0
+
+	self.realAnimObjs = {}
+	self.realEffects = {}
+end
+
+function Class:resume()
+	if self.is_paused then
+
+		UI.lock(false)
+		Time.timeScale = self.game_speed
+		self.is_paused = nil
+
+		for _,v in pairs(self.realAnimObjs) do
+			v:real_anim_quit()
+		end
+
+		for _,v in pairs(self.realEffects) do
+			GameAPI.RealParitcleQuit(v)
+	        GameAPI.StopParticleLoop(v)
+			UITools.ChangeObjLight(v,false)
+		end
+
+		self.realAnimObjs = nil
+		self.realEffects = nil
+	end
+end
+
+
+function Class:continue_game()
+	if self.realAnimObjs then
+		for _,v in pairs(self.realAnimObjs) do
+			v:real_anim()
+		end
+	end
+
+	if self.realEffects then
+		for _,v in pairs(self.realEffects) do
+			GameAPI.RealParitcle(v)
+		end
+	end
+
+	Time.timeScale = self.save.timeScale
+	UpdateBeat:Add(self.update,self)
+end
+
+function Class:pause_game()
+	if self.realAnimObjs then
+		for _,v in pairs(self.realAnimObjs) do
+			--print('ddd')
+			v:real_anim_quit()
+		end
+	end
+
+	if self.realEffects then
+		for _,v in pairs(self.realEffects) do
+			--print('222')
+			GameAPI.RealParitcleQuit(v)
+		end
+	end
+
+	self.save = {}
+	self.save.timeScale = Time.timeScale
+	UpdateBeat:Remove(self.update,self)
+	Time.timeScale = 0
+end
+
+
+function Class:get_anim_time(id,anim)
+	return GameAPI.GetAnimTime(self.actors[id].anim,anim)
+end
+
+function Class:send_server(cmd,params)
+	--print(_s(params))
+	gameplay[cmd](gameplay,params)
+end
+
+function Class:near_actor(team,pos)
+	local find_dis = 10000000
+	local find_obj  = nil
+
+	for _,v in pairs(self.actors) do
+		if (v.hp > 0) and (v.team == team) then
+			local dis = dis_pos(v.pos,pos) - v.cfg.radius
+			if dis < find_dis then
+				find_dis = dis
+				find_obj = v
+			end
+		end
+	end
+
+	return find_obj,math.sqrt(find_dis)
+end
+
+function Class:near_actor_in(team,pos,center,dis)
+	local find_dis = 10000000
+	local find_obj  = nil
+
+	for _,v in pairs(self.actors) do
+		if (v.hp > 0) and (v.team == team) then
+			local c_dis = dis_pos(v.pos,center) - v.cfg.radius
+			--print(c_dis,dis)
+			if c_dis <= dis then
+				local p_dis = dis_pos(v.pos,pos) - v.cfg.radius
+				if p_dis < find_dis then
+					find_dis = p_dis
+					find_obj = v
+				end
+			end
+		end
+	end
+
+	return find_obj
+end
+
+function Class:actor_in(team,center,dis)
+	local find_dis = 10000000
+	local find_obj  = nil
+
+	local ret = {}
+
+	for _,v in pairs(self.actors) do
+		if (v.hp > 0) and (v.team == team) then
+			local c_dis = dis_pos(v.pos,center) - v.cfg.radius
+			if c_dis <= dis then
+				ret[v.id] = v
+			end
+		end
+	end
+
+	return ret
+end
+
+-- cmds
+function msg.create(self,params)
+	local actor = ActorClient.create(params)
+	self.actors[actor.id] = actor
+
+	if actor.team == self.self_team then
+		table.insert(self.my_heros,actor)
+	else
+		table.insert(self.other_heros,actor)
+	end
+end
+
+function msg.move_to(self,params)
+	local actor = self.actors[params.id]
+
+	if actor then
+		actor.speed = params.speed
+		actor.des_pos = params.pos
+		actor.move_no_anim = params.no_anim
+		--print("move to",_s(actor.des_pos))
+	end
+end
+
+function msg.changed_speed(self,params)
+	local actor = self.actors[params.id]
+
+	if actor then
+		actor.speed = params.speed
+		--print("move to",_s(actor.des_pos))
+	end
+end
+
+function msg.stop_move(self,params)
+	local actor = self.actors[params.id]
+
+	if actor then
+		actor.des_pos = nil
+		if actor.next_anim == "run" then
+			actor:play_anim("idle")
+		end
+	end
+end
+
+function msg.stop(self,params)
+	msg.stop_move(self,params)
+end
+
+function msg.lock_skill(self,params)
+	local actor = self.actors[params.id]
+
+	if actor then
+		actor.lock_skill = params.value
+	end
+end
+
+
+
+function msg.play_anim(self,params)
+	local actor = self.actors[params.id]
+
+	if actor then
+
+
+		if self.is_paused then
+			actor:real_anim(params.anim)
+			self.realAnimObjs[actor.id] = actor
+		else
+			actor:play_anim(params.anim,params.speed)
+		end
+	end
+end
+
+function msg.pause_anim(self,params)
+	local actor = self.actors[params.id]
+
+	if actor then
+		actor:pause_anim(true)
+	end
+end
+
+function msg.resume_anim(self,params)
+	local actor = self.actors[params.id]
+
+	if actor then
+		actor:pause_anim(false)
+	end
+end
+
+
+
+function msg.hp_change(self,params)
+	local actor = self.actors[params.des]
+
+	if actor then
+		actor:hp_change(params.value,params.per)
+		-- no play anim in hurt
+		-- actor:try_play_anim("hurt")
+	end
+
+	--print(params.src,params.des,params.value)
+	local actor = self.actors[params.src]
+	if actor then
+		if params.value < 0 then
+			actor.atk_count = actor.atk_count -  params.value
+		end
+	end
+end
+
+function msg.energy_change(self,params)
+	local actor = self.actors[params.id]
+
+	if actor then
+		actor:energy_change(params.per)
+		-- no play anim in hurt
+		-- actor:try_play_anim("hurt")
+	end
+end
+
+function msg.stop_effect(self,params)
+
+	--print("del",self.effects[params.eid])
+	if self.effects[params.eid] then
+		local obj = self.effects[params.eid]
+		--print(obj,params.eid)
+		if self.is_paused then
+			for k,v in pairs(self.realEffects) do
+				if v == obj then
+					table.remove(self.realEffects,k)
+					break
+				end
+			end
+		end
+		GameObject.Destroy(obj)
+		self.effects[params.eid] = nil
+	end
+end
+
+function msg.play_effect(self,params)
+
+	local forward
+	if params.id then
+		local actor = self.actors[params.id]
+
+		if actor then
+			if params.node then
+				params.pos = GameAPI.GetPosIn(actor.obj,params.node)
+			else
+				params.pos = actor.pos:Clone()
+				params.pos.y = 0
+			end
+
+			if params.src then
+				local src = self.actors[params.src]
+				if src then
+					params.pos = line_pos(params.pos,src.pos,actor.cfg.radius-0.3)
+				end
+			end
+
+			--print(actor.id)
+			forward = actor.obj.transform.forward
+		end
+	end
+
+	local res = Resources.Load("effect/" .. params.res)
+	if not res then
+		return
+	end
+	local obj = Object.Instantiate(res)
+
+	obj.transform.position = params.pos
+
+	if forward then
+		obj.transform.forward = forward
+	end
+
+	if self.is_paused then
+		GameAPI.RealParitcle(obj)
+		UITools.ChangeObjLight(obj,true)
+		table.insert(self.realEffects,obj)
+	end
+
+	if params.eid then
+		self.effects[params.eid] = obj
+		obj.name = tostring(params.eid)
+
+--		print("add",params.eid,obj)
+	end
+end
+
+function msg.face_to(self,params)
+	local actor = self.actors[params.id]
+	if actor == nil then
+		return
+	end
+
+	if params.pos then
+		actor:face_to(params.pos)
+	else
+		local des_actor = self.actors[params.des]
+
+		--print(params.id,params.des)
+		if des_actor then
+			actor:face_to(des_actor)
+			-- no play anim in hurt
+			-- actor:try_play_anim("hurt")
+		end
+	end
+end
+
+function msg.used_master_skill(self,params)
+
+	local actor = self.actors[params.id]
+
+	if params.client then
+		self.pre_used_skill = true
+
+
+		if not self.range_obj then
+	        self.range_obj = load_gameobject("obj/range")
+	    end
+
+	    if not self.range_des then
+	        self.range_des = load_gameobject("obj/range_d")
+	    end
+
+	    if not self.sel_obj then
+	        self.sel_obj = load_gameobject("obj/sel_obj")
+	    end
+
+
+		local size = actor.master_skill.u_range
+
+	    if size > 0  then
+	        self.range_obj.transform.localScale = Vector3(size,1,size)
+	        self.range_obj.transform.localPosition = actor.pos
+	        self.range_obj:SetActive(true)
+	    else
+	        self.range_obj:SetActive(false)
+	    end
+	end
+
+    self:pause()
+	self.pause_actor = actor
+
+    UITools.ChangeObjLight(actor.obj,true)
+    self.light_objs = {}
+    self.light_objs[actor.id] = actor
+
+    self.spot:SetActive(true)
+
+	if actor.master_skill.obj_type == "enemy" then
+		local enemy = actor:get_enemy()
+		if enemy then
+			actor:get_des(enemy.pos,true)
+			return
+		end
+	end
+
+	actor:get_des(actor.pos,true)
+end
+
+function msg.end_game(self,datas)
+	game_client:destroy()
+	UI.create("battle_debriefing",datas)
+end
+
+function msg.buff_add(self,params)
+	local actor = self.actors[params.id]
+	if actor == nil then
+		return
+	end
+
+	local cfg = cfg_buff[params.type]
+
+	--print(params.type)
+
+	if cfg.effect[2] then
+		actor:add_effect(cfg.effect[1],cfg.effect[2])
+	elseif cfg.effect[1] then
+		actor:add_effect(cfg.effect[1],0.5)
+	end
+end
+
+function msg.buff_del(self,params)
+
+	local actor = self.actors[params.id]
+	if actor == nil then
+		return
+	end
+
+	local cfg = cfg_buff[params.type]
+
+	actor:del_effect(cfg.effect[1])
+end
+
+function msg.end_pause(self)
+	if self.is_paused then
+		if self.sel_obj then
+			self.sel_obj:SetActive(false)
+			self.range_obj:SetActive(false)
+			self.range_des:SetActive(false)
+		end
+
+		for k,v in pairs(self.light_objs) do
+			v:light_dis(false)
+			--UITools.ChangeObjLight(v.obj,false)
+		end
+		self:resume()
+		self.spot:SetActive(false)
+
+		self.enable_skill_update = false
+	end
+end
+
+function msg.create_bullet(self,params)
+	--print(params)
+	local bullet = Bullet.create(params)
+	self.temp_actors[bullet.id] = bullet
+end
+
+function msg.end_bullet(self,params)
+	local bullet = self.temp_actors[params.id]
+	if bullet then
+		bullet:on_client_end()
+	end
+end
+
+function msg.line_effect(self,params)
+	local src = self.actors[params.src]
+	local des = self.actors[params.des]
+
+	if src and des then
+		local obj = load_gameobject("effect/" .. params.res)
+		if params.anim_time then
+			GameAPI.LinkEffectAnim(obj,src.obj,des.obj,params.node,params.anim_time)
+		elseif params.life_time then
+			if params.src_node then
+				GameAPI.LinkEffect(obj,src.obj,des.obj,params.src_node,params.node,params.life_time)
+			else
+				GameAPI.LinkEffect(obj,src.obj,des.obj,params.node,params.life_time)
+			end
+		else
+			GameAPI.LinkEffect(obj,src.obj,des.obj,params.node)
+		end
+	end
+end
+
+function msg.play_sound(self,params)
+	sound_player.play(params.res,params.delay)
+end
+
+
+return Class

@@ -1,0 +1,8 @@
+D:\AOW2\data\config_tool\bin\Debug\config.exe.config
+D:\AOW2\data\config_tool\bin\Debug\config.exe
+D:\AOW2\data\config_tool\bin\Debug\config.pdb
+D:\AOW2\data\config_tool\bin\Debug\Excel.dll
+D:\AOW2\data\config_tool\bin\Debug\ICSharpCode.SharpZipLib.dll
+D:\AOW2\data\config_tool\obj\Debug\config.csprojResolveAssemblyReference.cache
+D:\AOW2\data\config_tool\obj\Debug\config.exe
+D:\AOW2\data\config_tool\obj\Debug\config.pdb
