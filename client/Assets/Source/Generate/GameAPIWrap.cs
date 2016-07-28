@@ -29,6 +29,7 @@ public class GameAPIWrap
 		L.RegFunction("LinkEffectAnim", LinkEffectAnim);
 		L.RegFunction("LinkEffect", LinkEffect);
 		L.RegFunction("Shake", Shake);
+		L.RegFunction("SetCameraFollow", SetCameraFollow);
 		L.EndStaticLibs();
 	}
 
@@ -483,6 +484,23 @@ public class GameAPIWrap
 			float arg0 = (float)LuaDLL.luaL_checknumber(L, 1);
 			float arg1 = (float)LuaDLL.luaL_checknumber(L, 2);
 			GameAPI.Shake(arg0, arg1);
+			return 0;
+		}
+		catch(Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int SetCameraFollow(IntPtr L)
+	{
+		try
+		{
+			ToLua.CheckArgsCount(L, 2);
+			UnityEngine.GameObject arg0 = (UnityEngine.GameObject)ToLua.CheckUnityObject(L, 1, typeof(UnityEngine.GameObject));
+			UnityEngine.Vector3 arg1 = ToLua.ToVector3(L, 2);
+			GameAPI.SetCameraFollow(arg0, arg1);
 			return 0;
 		}
 		catch(Exception e)

@@ -169,7 +169,7 @@ namespace LuaInterface
 
         public virtual byte[] ReadFile(string fileName)
         {
-#if USED_RES
+#if USED_RES && (!UNITY_EDITOR)
             string resName = fileName;
             if (!resName.EndsWith(".lua"))
             {

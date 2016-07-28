@@ -340,5 +340,12 @@ public class GameAPI {
         a.time = time;
         a.power = power;
     }
-  
+
+    static public void SetCameraFollow(GameObject obj, Vector3 v)
+    {
+        CameraFollow f = GetOrAnd<CameraFollow>(Camera.main.gameObject);
+        f.obj = obj;
+        f.off = v;
+    }
+
 }

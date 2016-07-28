@@ -68,6 +68,12 @@ public class SoundAPI : MonoBehaviour
     float PlayOneShot(string name,float delay)
     {
         AudioClip a = Load(name);
+
+        if (a == null)
+        {
+            return 1;
+        }
+
         if (delay > 0)
         {
             StartCoroutine(DelayPlay(delay, a));
@@ -83,6 +89,11 @@ public class SoundAPI : MonoBehaviour
     void Play(string name, float delay,bool loop)
     {
         AudioClip a = Load(name);
+
+        if ( a == null )
+        {
+            return;
+        }
 
         if (delay > 0)
         {

@@ -1,0 +1,190 @@
+fileFormatVersion: 2
+guid: ed40a892f9a26e143907faa529f60ee4
+timeCreated: 1466662705
+licenseType: Free
+ModelImporter:
+  serializedVersion: 19
+  fileIDToRecycleName:
+    100000: Armor_L
+    100002: Armor_R
+    100004: B_Head
+    100006: B_Head_Nub
+    100008: B_L_Calf
+    100010: B_L_Clavicle
+    100012: B_L_Finger0
+    100014: B_L_Finger0_Nub
+    100016: B_L_Foot
+    100018: B_L_Forearm
+    100020: B_L_Hand
+    100022: B_L_Thigh
+    100024: B_L_Toe0
+    100026: B_L_Toe0_Nub
+    100028: B_L_UpperArm
+    100030: B_Neck
+    100032: B_Pelvis
+    100034: B_R_Calf
+    100036: B_R_Clavicle
+    100038: B_R_Finger0
+    100040: B_R_Finger0_Nub
+    100042: B_R_Foot
+    100044: B_R_Forearm
+    100046: B_R_Hand
+    100048: B_R_Thigh
+    100050: B_R_Toe0
+    100052: B_R_Toe0_Nub
+    100054: B_R_UpperArm
+    100056: B_Spine
+    100058: B_Spine1
+    100060: battle_effect
+    100062: Bip01
+    100064: Bip01 Footsteps
+    100066: Bone01
+    100068: Bone02
+    100070: Bone03
+    100072: Bone04
+    100074: Bone05
+    100076: Bone06
+    100078: Bone07
+    100080: Bone08
+    100082: Bone09
+    100084: Bone10
+    100086: Bone11
+    100088: Bone12
+    100090: Chest_Sixthset
+    100092: Cloak_Sixthset
+    100094: Dummy01
+    100096: Effect_Bottom
+    100098: Effect_Bottom001
+    100100: Effect_cape
+    100102: Effect_middle
+    100104: Foot_Sixthset
+    100106: Head_Sixthset
+    100108: //RootNode
+    400000: Armor_L
+    400002: Armor_R
+    400004: B_Head
+    400006: B_Head_Nub
+    400008: B_L_Calf
+    400010: B_L_Clavicle
+    400012: B_L_Finger0
+    400014: B_L_Finger0_Nub
+    400016: B_L_Foot
+    400018: B_L_Forearm
+    400020: B_L_Hand
+    400022: B_L_Thigh
+    400024: B_L_Toe0
+    400026: B_L_Toe0_Nub
+    400028: B_L_UpperArm
+    400030: B_Neck
+    400032: B_Pelvis
+    400034: B_R_Calf
+    400036: B_R_Clavicle
+    400038: B_R_Finger0
+    400040: B_R_Finger0_Nub
+    400042: B_R_Foot
+    400044: B_R_Forearm
+    400046: B_R_Hand
+    400048: B_R_Thigh
+    400050: B_R_Toe0
+    400052: B_R_Toe0_Nub
+    400054: B_R_UpperArm
+    400056: B_Spine
+    400058: B_Spine1
+    400060: battle_effect
+    400062: Bip01
+    400064: Bip01 Footsteps
+    400066: Bone01
+    400068: Bone02
+    400070: Bone03
+    400072: Bone04
+    400074: Bone05
+    400076: Bone06
+    400078: Bone07
+    400080: Bone08
+    400082: Bone09
+    400084: Bone10
+    400086: Bone11
+    400088: Bone12
+    400090: Chest_Sixthset
+    400092: Cloak_Sixthset
+    400094: Dummy01
+    400096: Effect_Bottom
+    400098: Effect_Bottom001
+    400100: Effect_cape
+    400102: Effect_middle
+    400104: Foot_Sixthset
+    400106: Head_Sixthset
+    400108: //RootNode
+    4300000: Cloak_Sixthset
+    4300002: Chest_Sixthset
+    4300004: Head_Sixthset
+    4300006: Foot_Sixthset
+    9500000: //RootNode
+    13700000: Chest_Sixthset
+    13700002: Cloak_Sixthset
+    13700004: Foot_Sixthset
+    13700006: Head_Sixthset
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleRotations: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

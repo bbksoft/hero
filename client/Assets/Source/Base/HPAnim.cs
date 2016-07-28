@@ -7,7 +7,8 @@ public class HPAnim : MonoBehaviour {
 
     public Slider back;
     public Slider hp;
-    public float  speed = 0.3f;
+    public float  speed = 0.1f;
+    public float  max_speed = 2f;
 
     float value      = 1;
     float animValue  = 1;
@@ -36,7 +37,14 @@ public class HPAnim : MonoBehaviour {
     void Update () {
 	    if (animValue > value)
         {
-            float d = Time.deltaTime * speed;
+            float s = (animValue - value) * max_speed;
+
+            if (s <= speed)
+            {
+                s = speed;
+            }
+
+            float d = Time.deltaTime * s;
             if (d>=(animValue-value))
             {
                 animValue = value;
